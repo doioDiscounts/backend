@@ -23,13 +23,13 @@ let paginate = (data, items, pageNumber) => {
 }
 
 app.post('/getProducts', async (req, res) => {
-    // let results = await elasticSearchClient.search({
-    //     index: 'products',
-    //     body: req.body.query,
-    //     size: 10000
-    // })
-    // let response = paginate(results.body.hits.hits, req.body.items, req.body.pageNumber)
-    let response = paginate(dummyData, req.body.items, req.body.pageNumber)
+    let results = await elasticSearchClient.search({
+        index: 'products',
+        body: req.body.query,
+        size: 10000
+    })
+    let response = paginate(results.body.hits.hits, req.body.items, req.body.pageNumber)
+    // let response = paginate(dummyData, req.body.items, req.body.pageNumber)
     res.send(response)
 })
 

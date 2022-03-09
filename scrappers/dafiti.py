@@ -40,7 +40,7 @@ for page in range(2):
       if int(driver.find_elements_by_class_name('itm-product-main-info')[n].find_element_by_class_name('itm-saleFlagPercent').text[1:-1]) >= 50:
         product['title'] = driver.find_elements_by_class_name('itm-product-main-info')[n].find_element_by_class_name('itm-title').text 
         product['discount'] = int(driver.find_elements_by_class_name('itm-product-main-info')[n].find_element_by_class_name('itm-saleFlagPercent').text[1:-1])
-        product['imageLink'] = driver.find_elements_by_class_name('itm-product-main-info')[n].find_element_by_class_name('itm-img').get_attribute('src')
+        product['imageLink'] = driver.find_elements_by_class_name('itm-product-main-info')[n].find_element_by_class_name('itm-img').get_attribute('src')        
         product['link'] = driver.find_elements_by_class_name('itm-product-main-info')[n].find_element_by_class_name('itm-link').get_attribute('href')
         product["provider"] = "Dafiti"
         # Click on product to get its category
