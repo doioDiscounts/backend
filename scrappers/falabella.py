@@ -1,22 +1,7 @@
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 import time
-from categoryConverter import categoryConverter
-from elasticsearch import Elasticsearch
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-elasticsearchClient = Elasticsearch(
-    [os.environ.get("ELASTICSEARCH_HOST")], 
-    scheme="http", 
-    port=os.environ.get("ELASTICSEARCH_PORT")
-)
-
-# Delete all documents with provider falabella 
-try: elasticsearchClient.delete_by_query(index="products", body={"query": {"match": {"provider": "Falabella"}}})
-except: pass
+from utils.categoryConverter import categoryConverter
+from utils.localOrElasticsearch import localOrElasticsearch
 
 driver = webdriver.Firefox()
 
@@ -29,12 +14,10 @@ for categoryIndex in range(20):
         #Go to homescreen
         driver.get('https://www.falabella.com.co/falabella-co')
 
-        #Close popup
-        try: driver.find_element_by_xpath('//*[@id="acc-alert-deny"]').click()
-        except: pass
+        driver.find_element_by_css_selector(".BackgroundImageOnly-module_half-width-only-desktop__OXKgG").click()
 
         #Open sidebar
-        driver.find_element_by_xpath('//*[@id="testId-HamburgerBtn-toggle"]/div[1]/div').click()
+        driver.find_element_by_css_selector(".HamburgerBtn-module_line__382dh").click()
 
         #Open category
         category = driver.find_element_by_xpath('//*[@id="cross-header"]/div[3]/div/div[2]/div/ul').find_elements_by_tag_name('p')[categoryIndex].text
@@ -47,18 +30,16 @@ for categoryIndex in range(20):
 
                 #Open ver todo
                 driver.find_elements_by_tag_name('b')[subCategoryIndex].click()
-                time.sleep(3)
                 
-
                 #Append data for vertically alligned products
                 for product in driver.find_elements_by_css_selector('div.jsx-4221770651.pod'): 
                     try: 
-                        if int(product.find_element_by_css_selector('span.jsx-148017451.copy8.primary.jsx-1524574875.bold.pod-badges-item-LIST.pod-badges-item').text[:2]) > 49:
+                        if int(product.find_element_by_css_selector(".jsx-3167696911.jsx-2117988457.copy8.primary.jsx-3548557188.bold.pod-badges-item-LIST.pod-badges-item").text[:2]) > 10:  
                             products.append({
-                                "category": categoryConverter(driver.find_element_by_css_selector('h1.jsx-3139645404.l2category').text), 
-                                "title": product.find_element_by_css_selector('b.jsx-4221770651.title2.primary.jsx-1524574875.bold.pod-subTitle').text, 
-                                "discount": int(product.find_element_by_css_selector('span.jsx-148017451.copy8.primary.jsx-1524574875.bold.pod-badges-item-LIST.pod-badges-item').text[:2]),
-                                "link": product.find_element_by_css_selector('a.jsx-4221770651.section-body.pod-link').get_attribute('href'),
+                                "category": categoryConverter(driver.find_element_by_css_selector('.jsx-2883309125.l2category').text), 
+                                "title": product.find_element_by_css_selector(".jsx-4221770651.title2.primary.jsx-3548557188.bold.pod-subTitle").text, 
+                                "discount": int(product.find_element_by_css_selector(".jsx-3167696911.jsx-2117988457.copy8.primary.jsx-3548557188.bold.pod-badges-item-LIST.pod-badges-item").text[:2]),
+                                "link": product.find_element_by_css_selector('.jsx-3128226947.list-view').get_attribute('href'),
                                 "provider": "Falabella"
                             })
                     except: pass
@@ -66,12 +47,12 @@ for categoryIndex in range(20):
                 #Append data for horizontally alligned products
                 for product in driver.find_elements_by_css_selector('div.jsx-4001457643.search-results-4-grid.grid-pod'): 
                     try:
-                        if int(product.find_element_by_css_selector('span.jsx-148017451.copy8.primary.jsx-1524574875.bold.pod-badges-item-4_GRID.pod-badges-item').text[:2]) > 49:        
+                        if int(product.find_element_by_css_selector('.jsx-3167696911.jsx-2117988457.copy8.primary.jsx-3548557188.bold.pod-badges-item-4_GRID.pod-badges-item').text[:2]) > 10:        
                             products.append({
-                                "category": categoryConverter(driver.find_element_by_css_selector('h1.jsx-3139645404.l2category').text), 
-                                "title": product.find_element_by_css_selector('b.jsx-3153667981.copy2.primary.jsx-1524574875.normal.pod-subTitle').text, 
-                                "discount": int(product.find_element_by_css_selector('span.jsx-148017451.copy8.primary.jsx-1524574875.bold.pod-badges-item-4_GRID.pod-badges-item').text[:2]),
-                                "link": product.find_element_by_css_selector('a.jsx-3153667981.jsx-3886284353.pod-summary.pod-link.pod-summary-4_GRID').get_attribute('href'),
+                                "category": categoryConverter(driver.find_element_by_css_selector('.jsx-2883309125.l2category').text), 
+                                "title": product.find_element_by_css_selector('.jsx-1327784995.copy2.primary.jsx-3548557188.normal.pod-subTitle').text, 
+                                "discount": int(product.find_element_by_css_selector('.jsx-3167696911.jsx-2117988457.copy8.primary.jsx-3548557188.bold.pod-badges-item-4_GRID.pod-badges-item').text[:2]),
+                                "link": product.find_element_by_css_selector('.jsx-1327784995.jsx-97019337.pod-summary.pod-link.pod-summary-4_GRID').get_attribute('href'),
                                 "provider": "Falabella"
                             })
                     except: pass
@@ -98,5 +79,4 @@ for item in range(len(products)):
 
 driver.close()
 
-#Index every product to elasticsearch 
-for product in products: elasticsearchClient.index(index="products", document=product)
+localOrElasticsearch("local", products, "Falabella")

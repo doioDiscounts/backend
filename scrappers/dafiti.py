@@ -1,22 +1,10 @@
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 import time
-from categoryConverter import categoryConverter
-from elasticsearch import Elasticsearch
+from utils.categoryConverter import categoryConverter
 from dotenv import load_dotenv
-import os
+from utils.localOrElasticsearch import localOrElasticsearch
 
 load_dotenv()
-
-elasticsearchClient = Elasticsearch(
-    [os.environ.get("ELASTICSEARCH_HOST")], 
-    scheme="http", 
-    port=os.environ.get("ELASTICSEARCH_PORT")
-)
-
-# Delete all documents with provider dafiti 
-try: elasticsearchClient.delete_by_query(index="products", body={"query": {"match": {"provider": "Dafiti"}}})
-except: pass
 
 # Create driver
 driver = webdriver.Firefox()
@@ -55,9 +43,6 @@ for page in range(2):
         time.sleep(1.5)
     except: break
 
-# Close session
 driver.close()
 
-#Index every product to elasticsearch 
-for product in products: elasticsearchClient.index(index="products", document=product)
-
+localOrElasticsearch("local", products, "Dafiti")

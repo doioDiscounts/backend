@@ -10,3 +10,4 @@ node_modules
 __pycache__
 geckodriver.log
 .env
+products.js
