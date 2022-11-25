@@ -1,0 +1,20 @@
+{
+    "providers": [
+        {
+            "provider": "Falabella",
+            "count": 0
+        },
+        {
+            "provider": "Alkosto",
+            "count": 0
+        },
+        {
+            "provider": "Rappi",
+            "count": 0
+        },
+        {
+            "provider": "Amazon",
+            "count": 0
+        }
+    ]
+}
